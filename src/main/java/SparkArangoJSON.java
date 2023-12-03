@@ -1,17 +1,12 @@
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.*;
-import org.apache.spark.sql.types.DataTypes;
-import org.apache.spark.sql.types.StructType;
-import org.apache.spark.sql.types.StructField;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SaveMode;
+import org.apache.spark.sql.SparkSession;
+
 import java.util.HashMap;
-import scala.reflect.ClassTag$;
-
 import java.util.Map;
-import java.util.Properties;
 
-public class SparkArangoCSV {
+public class SparkArangoJSON {
     public static void main(String[] args) {
         // Initialize Spark
         SparkSession spark = SparkSession.builder()
@@ -20,17 +15,16 @@ public class SparkArangoCSV {
                 .getOrCreate();
         //local[*]
         // Define the path to your large CSV file
-        String inputFile = "../SparkDataIngestion/input_file.csv"; // Replace with your file path
+        String inputFile = "../SparkDataIngestion/input_json.json"; // Replace with your file path
 
         Dataset<Row> df = spark.read()
-                .format("csv")
+                .format("json")
                 .option("inferSchema", "true")
-                .option("header", "true")
                 .load(inputFile);
 
         Map<String, String> arangoOpts = new HashMap<String, String>();
         arangoOpts.put("password", "rootpassword");
-        arangoOpts.put("table", "test");
+        arangoOpts.put("table", "test2");
         arangoOpts.put("ssl.enabled", "False");
         arangoOpts.put("endpoints", "localhost:8529");
 
