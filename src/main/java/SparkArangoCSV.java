@@ -2,6 +2,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
+import org.apache.spark.sql.streaming.StreamingQuery;
+import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructType;
 import org.apache.spark.sql.types.StructField;
@@ -10,9 +12,10 @@ import scala.reflect.ClassTag$;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.TimeoutException;
 
 public class SparkArangoCSV {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws TimeoutException, StreamingQueryException {
         // Initialize Spark
         SparkSession spark = SparkSession.builder()
                 .appName("csv_to_arangodb")
