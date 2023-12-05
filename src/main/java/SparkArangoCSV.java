@@ -22,14 +22,18 @@ public class SparkArangoCSV {
                 .master("local[*]")
                 .getOrCreate();
         //local[*]
-        // Define the path to your large CSV file
-        String inputFile = "../SparkDataIngestion/input_file.csv"; // Replace with your file path
 
-        Dataset<Row> df = spark.read()
+        // // Define the path to your large CSV file
+        // String inputFile = "../SparkDataIngestion/input_file.csv"; // Replace with your file path
+
+        // The path to the directory to monitor
+        String inputDir = "../SparkDataIngestion"; // Replace with your directory path
+        
+        Dataset<Row> df = spark.readStream()
                 .format("csv")
                 .option("inferSchema", "true")
                 .option("header", "true")
-                .load(inputFile);
+                .load(inputDir);
 
         Map<String, String> arangoOpts = new HashMap<String, String>();
         arangoOpts.put("password", "rootpassword");
@@ -37,11 +41,15 @@ public class SparkArangoCSV {
         arangoOpts.put("ssl.enabled", "False");
         arangoOpts.put("endpoints", "localhost:8529");
 
-        df.write()
+        // Write data to ArangoDB as it's read
+        StreamingQuery query = df.writeStream()
+                .outputMode("append")
                 .format("com.arangodb.spark")
-                .mode(SaveMode.Append)
                 .options(arangoOpts)
-                .save();
+                .option("checkpointLocation", "checkpoints/")
+                .start();
+
+        query.awaitTermination();
 
 
         // Stop Spark context
