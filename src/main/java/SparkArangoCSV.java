@@ -29,9 +29,17 @@ public class SparkArangoCSV {
         // The path to the directory to monitor
         String inputDir = "../SparkDataIngestion"; // Replace with your directory path
         
+        // Infer schema from existing data
+        StructType csvSchema = spark.read()
+                .format("csv")
+                .option("header", "true")
+                .option("inferSchema", "true")
+                .load(inputDir)
+                .schema();
+
         Dataset<Row> df = spark.readStream()
                 .format("csv")
-                .option("inferSchema", "true")
+                .schema(csvSchema)
                 .option("header", "true")
                 .load(inputDir);
 
@@ -43,14 +51,13 @@ public class SparkArangoCSV {
 
         // Write data to ArangoDB as it's read
         StreamingQuery query = df.writeStream()
-                .outputMode("append")
                 .format("com.arangodb.spark")
+                .mode(SaveMode.Append)
                 .options(arangoOpts)
                 .option("checkpointLocation", "checkpoints/")
                 .start();
 
         query.awaitTermination();
-
 
         // Stop Spark context
         spark.stop();

@@ -26,7 +26,7 @@ public class SparkArangoJSON {
         
         Dataset<Row> df = spark.readStream()
                 .format("json")
-                .option("inferSchema", "true")
+                .option("multiline", "true") 
                 .load(inputDir);
 
         Map<String, String> arangoOpts = new HashMap<String, String>();
@@ -37,8 +37,8 @@ public class SparkArangoJSON {
 
         // Write data to ArangoDB as it's read
         StreamingQuery query = df.write()
-                .outputMode("append")
                 .format("com.arangodb.spark")
+                .mode(SaveMode.Append)
                 .options(arangoOpts)
                 .option("checkpointLocation", "checkpoints/")
                 .start();
